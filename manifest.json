@@ -1,0 +1,25 @@
+{
+  "name": "VAYLEN STORE",
+  "short_name": "VAYLEN",
+  "description": "Sistema de ventas VAYLEN STORE",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#19d9df",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./vaylen-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./vaylen-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
