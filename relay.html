@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vaylen Scanner Relay</title>
+  <style>
+    body { margin: 0; background: transparent; }
+  </style>
+</head>
+<body>
+<!--
+  relay.html — iframe invisible que vive en GAS/Cuerpo.html
+  ──────────────────────────────────────────────────────────
+  Está en el mismo origen que scanner.html (github.io),
+  por lo que puede recibir BroadcastChannel y localStorage events
+  del popup escáner. Cuando recibe el código, lo reenvía al
+  padre (GAS app) vía window.parent.postMessage.
+-->
+<script>
+  'use strict';
+
+  /* ── BroadcastChannel: canal principal ── */
+  var bc = null;
+  try {
+    bc = new BroadcastChannel('vaylen_scanner');
+    bc.onmessage = function(e) {
+      if (e.data && e.data.tipo === 'codigo_escaneado') {
+        reenviar(e.data);
+      }
+    };
+  } catch(ex) {
+    bc = null; // Safari antiguo → usar storage event
+  }
+
+  /* ── localStorage storage event: canal de respaldo ── */
+  // scanner.html escribe en localStorage (mismo origen github.io),
+  // relay.html lo detecta aquí aunque estén en pestañas/ventanas distintas.
+  window.addEventListener('storage', function(e) {
+    if (e.key !== 'vaylen_scan_result') return;
+    try {
+      var data = JSON.parse(e.newValue || '{}');
+      if (data && data.payload && data.payload.tipo === 'codigo_escaneado') {
+        reenviar(data.payload);
+      }
+    } catch(ex) {}
+  });
+
+  /* ── Reenviar al padre (GAS app) ── */
+  var ultimoTs = 0;
+  function reenviar(payload) {
+    // Desduplicar: ignorar si recibimos el mismo mensaje en < 2 segundos
+    var ahora = Date.now();
+    if (ahora - ultimoTs < 2000) return;
+    ultimoTs = ahora;
+
+    try {
+      // window.parent es el GAS app que tiene el iframe
+      window.parent.postMessage(payload, '*');
+    } catch(ex) {}
+
+    // Limpiar el item de localStorage para no re-disparar
+    try { localStorage.removeItem('vaylen_scan_result'); } catch(ex) {}
+  }
+</script>
+</body>
+</html>
